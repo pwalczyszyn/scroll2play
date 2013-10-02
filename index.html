@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+    
+    <head>
+        <meta charset="UTF-8">
+        <meta name="author" content="Piotr Walczyszyn">
+        <meta name="description" content="Demo page of scroll2play javascript library">
+        <meta name="keywords" content="video, scroll, parallax, js, html, css ">
+        <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0">
+        <title>scroll2play demo</title>
+        <style>
+            html {
+                height: 100%;
+                background-color:transparent;
+            }
+            body {
+                position: relative;
+                margin:0;
+                background-color:#323c46;
+                color:#FFFFFF;
+                font-family: fredericka-the-great, sans-serif;
+            }
+            a {
+                text-decoration:none;
+                color:#72D5A1;
+            }
+            .loader {
+                display:none;
+            }
+            body.loading .loader {
+                display: block;
+            }
+            .s2p-container {
+                opacity:1;
+                -webkit-transition: opacity 2s ease-in-out;
+                -moz-transition: opacity 2s ease-in-out;
+                -ms-transition: opacity 2s ease-in-out;
+                -o-transition: opacity 2s ease-in-out;
+                transition: opacity 2s ease-in-out;
+            }
+            body.loading .s2p-container {
+                opacity:0;
+            }
+            body.loading .page {
+                display:none;
+            }
+            .loader, .page {
+                position:relative;
+                width:100vw;
+                height:100vh;
+                line-height:100vh;
+                text-align:center;
+                font-size:5rem;
+            }
+            .page.first, .page.last {
+                background-color:#323c46;
+            }
+        </style>
+        <script src="//use.edgefonts.net/fredericka-the-great.js"></script>
+    </head>
+    
+    <body class="loading">
+        <div id="s2p-container" class="s2p-container"></div>
+        <div class="loader">Loading 0%</div>
+        <section class="page first">scroll2play &#9660;</section>
+        <section class="page"></section>
+        <section class="page">THIS</section>
+        <section class="page">IS</section>
+        <section class="page">ME</section>
+        <section class="page">DOING</section>
+        <section class="page">360°</section>
+        <section class="page">:)</section>
+        <section class="page"></section>
+        <section class="page last">Built with
+            <a href="https://github.com/pwalczyszyn/scroll2play" target="_blank">scroll2play</a>
+            <a href="https://github.com/pwalczyszyn/scroll2play">
+                <img style="position: absolute; top: 0; left: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub">
+            </a>
+        </section>
+        <script src="scripts/s2p.js"></script>
+        <script>
+            var s2p = new Scroll2Play('s2p-container', 'images/lowres', 'images/highres', 'wakey-', 55, 'jpg', '00');
+            s2p.onprogress = function(progress) {
+                var loader = document.querySelector('.loader');
+                loader.innerHTML = 'Loading ' + Math.round(progress * 100) + '%';
+            }
+            s2p.onload = function() {
+                document.body.classList.remove('loading');
+            }
+            s2p.load();
+        </script>
+    </body>
+
+</html>
