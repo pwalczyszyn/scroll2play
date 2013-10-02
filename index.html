@@ -82,7 +82,7 @@
             var s2p = new Scroll2Play('s2p-container', 'images/lowres', 'images/highres', 'wakey-', 55, 'jpg', '00');
             s2p.onprogress = function(progress) {
                 var loader = document.querySelector('.loader');
-                loader.innerHTML = 'Loading ' + Math.round(progress * 100) + '%';
+                loader.innerHTML = 'Loading ' + Math.floor(progress * 100) + '%';
             }
             s2p.onload = function() {
                 document.body.classList.remove('loading');

@@ -35,35 +35,39 @@ var Scroll2Play = function Scroll2Play(elId, lowResImgsUrl, highResImgsUrl, imgP
  *
  * @fires Scroll2Play#onload Fired when loading images is complete.
  * @fires Scroll2Play#onprogress Fired during images loading, callback param is % of progress.
+ * @fires Scroll2Play#onerror Fired when loading images fails.
  * @return {Scroll2Play}
  */
 Scroll2Play.prototype.load = function s2p_load() {
-    var loaded = 0;
+    var loaded = 0,
+        error = false;
     for (var i = 0, img; i < this.imgsCount; i++) {
         img = new Image();
         img.style.cssText = this.img.style.cssText;
 
         img.src = this._getImgUrl(this.lowResImgsUrl, i);
-        img.onload = function (e) {
+        img.onload = function img_loadHandler(e) {
+            e.target.onload = null;
             loaded++;
-            updateProgress.call(this);
+
+            if (!error) {
+                if (this.onprogress) {
+                    console.log(loaded, this.imgsCount, loaded / this.imgsCount);
+                    this.onprogress(loaded / this.imgsCount);
+                }
+                if (loaded == this.imgsCount) {
+                    if (this.onload) this.onload();
+                    this._handleScrolling();
+                }
+            }
+
         }.bind(this);
-        img.onerror = img.onabort = function (e) {
-            loaded++;
-            this.images.splice(this.images.indexOf(e.target), 1);
-            updateProgress.call(this);
+        img.onerror = function img_errorHandler(e) {
+            e.target.onload = null;
+            error = true;
+            this.onerror(e);
         }.bind(this);
         this.images.push(img);
-    }
-
-    function updateProgress() {
-        if (this.onprogress) {
-            this.onprogress(loaded / this.imgsCount);
-        }
-        if (loaded >= this.imgsCount) {
-            if (this.onload) this.onload();
-            this._handleScrolling();
-        }
     }
 
     return this;
@@ -73,6 +77,11 @@ Scroll2Play.prototype.load = function s2p_load() {
  * @event
  */
 Scroll2Play.prototype.onload = function () {}
+
+/**
+ * @event
+ */
+Scroll2Play.prototype.onerror = function () {}
 
 /**
  * @event
