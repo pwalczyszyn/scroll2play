@@ -63,7 +63,7 @@ Scroll2Play.prototype.load = function s2p_load() {
 
         }.bind(this);
         img.onerror = function img_errorHandler(e) {
-            e.target.onload = null;
+            e.target.onerror = null;
             error = true;
             this.onerror(e);
         }.bind(this);
