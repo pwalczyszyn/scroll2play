@@ -16,8 +16,8 @@ var Scroll2Play = function Scroll2Play(elId, lowResImgsUrl, highResImgsUrl, imgP
     if (!this.el) throw new Error('Element with specified id doesn\'t exist!');
     this.el.style.cssText += 'position:fixed;width:100%;height:100%;';
 
-    this.img = new Image;
-    this.img.style.cssText = 'position:relative;min-height:100vh;min-width:100vw;';
+    this.img = document.createElement('div');
+    this.img.style.cssText = 'position:relative;min-height:100vh;min-width:100vw;background-color:transparent;background-repeat:no-repeat;background-size:cover;-webkit-background-size:cover;-mox-background-size:cover;-o-background-size:cover;background-position:center';
     this.el.appendChild(this.img);
 
     this.lowResImgsUrl = lowResImgsUrl;
@@ -28,6 +28,7 @@ var Scroll2Play = function Scroll2Play(elId, lowResImgsUrl, highResImgsUrl, imgP
     this.imgsNumFormat = imgsNumFormat ? imgsNumFormat : '0';
 
     this.images = [];
+    this.highResImages = [];
 }
 
 /**
@@ -41,33 +42,55 @@ var Scroll2Play = function Scroll2Play(elId, lowResImgsUrl, highResImgsUrl, imgP
 Scroll2Play.prototype.load = function s2p_load() {
     var loaded = 0,
         error = false;
+
     for (var i = 0, img; i < this.imgsCount; i++) {
-        img = new Image();
-        img.style.cssText = this.img.style.cssText;
+        xhr.call(this, i);
+    }
 
-        img.src = this._getImgUrl(this.lowResImgsUrl, i);
-        img.onload = function img_loadHandler(e) {
-            e.target.onload = null;
-            loaded++;
+    function xhr(i) {
+        this.images[i] = new XMLHttpRequest();
+        this.images[i].open('GET', this._getImgUrl(this.lowResImgsUrl, i), true);
+        this.images[i].responseType = 'blob';
+        this.images[i].addEventListener('load', xhr_loadHandler(i, this), false);
+        this.images[i].addEventListener('error', xhr_errorHandler(this), false);
+        this.images[i].addEventListener('abort', xhr_abortHandler(this), false);
+        this.images[i].send();
+    }
 
+    function xhr_loadHandler(i, s2p) {
+        return function _xhr_loadHandler(e) {
+            e.target.removeEventListener('error', _xhr_loadHandler);
             if (!error) {
-                if (this.onprogress) {
-                    console.log(loaded, this.imgsCount, loaded / this.imgsCount);
-                    this.onprogress(loaded / this.imgsCount);
+                //                var div = document.createElement('div');
+                //                div.style.cssText = s2p.img.style.cssText;
+                //                div.style.backgroundImage = 'url(' + window.URL.createObjectURL(e.target.response) + ')';
+
+                s2p.images[i] = window.URL.createObjectURL(e.target.response); // div;
+                loaded++;
+
+                if (s2p.onprogress) {
+                    s2p.onprogress(loaded / s2p.imgsCount);
                 }
-                if (loaded == this.imgsCount) {
-                    if (this.onload) this.onload();
-                    this._handleScrolling();
+                if (loaded == s2p.imgsCount) {
+                    if (s2p.onload) s2p.onload();
+                    s2p._handleScrolling();
                 }
             }
+        }
+    }
 
-        }.bind(this);
-        img.onerror = function img_errorHandler(e) {
-            e.target.onerror = null;
+    function xhr_errorHandler(s2p) {
+        return function (e) {
             error = true;
-            this.onerror(e);
-        }.bind(this);
-        this.images.push(img);
+            if (s2p.onerror) s2p.onerror(e);
+        }
+    }
+
+    function xhr_abortHandler(s2p) {
+        return function (e) {
+            error = true;
+            if (s2p.onerror) s2p.onerror(e);
+        }
     }
 
     return this;
@@ -116,19 +139,12 @@ Scroll2Play.prototype._handleScrolling = function s2p_handleScrolling() {
             imgNum = Math.round(window.pageYOffset / document.body.clientHeight * that.images.length);
         if (null == prevImgNum || prevImgNum != imgNum) {
             img = that.images[imgNum];
-
             if (img) {
-                // Getting top and left of already loaded image
-                var top = (window.innerHeight - that.img.height) / 2 + 'px',
-                    left = (window.innerWidth - that.img.width) / 2 + 'px';
 
-                that.img = img;
-                that.img.style.top = top;
-                that.img.style.left = left;
+                //                that.el.innerHTML = '';
+                //                that.el.appendChild(img);
 
-                that.el.innerHTML = '';
-                that.el.appendChild(that.img);
-
+                that.img.style.backgroundImage = 'url(' + img + ')';
                 prevImgNum = imgNum;
             }
         }
@@ -153,11 +169,11 @@ Scroll2Play.prototype._handleScrolling = function s2p_handleScrolling() {
  * @private
  */
 Scroll2Play.prototype._loadHighResImg = function s2p_loadHighResImg(imgNum) {
-    if (this.highResImgsUrl) {
-        var width = this.img.width,
-            height = this.img.height;
-        this.img.src = this._getImgUrl(this.highResImgsUrl, imgNum);
-        this.img.width = width;
-        this.img.height = height;
-    }
+    //    if (this.highResImgsUrl) {
+    //        var width = this.img.width,
+    //            height = this.img.height;
+    //        this.img.src = this._getImgUrl(this.highResImgsUrl, imgNum);
+    //        this.img.width = width;
+    //        this.img.height = height;
+    //    }
 }
