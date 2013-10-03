@@ -52,7 +52,6 @@ Scroll2Play.prototype.load = function s2p_load() {
 
             if (!error) {
                 if (this.onprogress) {
-                    console.log(loaded, this.imgsCount, loaded / this.imgsCount);
                     this.onprogress(loaded / this.imgsCount);
                 }
                 if (loaded == this.imgsCount) {
