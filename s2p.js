@@ -17,12 +17,10 @@
      */
     var Scroll2Play = window.Scroll2Play = function Scroll2Play(elId, lowResImgsUrl, highResImgsUrl, imgPrefix, imgsCount, imgsType, imgsNumFormat) {
         this.el = document.getElementById(elId);
-        if (!this.el) {
-            throw new Error('Element with specified id doesn\'t exist!');
-        }
-        this.el.style.cssText += 'position:fixed;width:100%;height:100%;';
+        if (!this.el) throw new Error('Element with specified id doesn\'t exist!');
+        this.el.style.cssText += 'position:fixed;overflow:hidden;width:100%;height:100%;';
 
-        this.img = new Image();
+        this.img = document.createElement('img');
         this.img.style.cssText = 'position:relative;min-height:100vh;min-width:100vw;';
         this.el.appendChild(this.img);
 
@@ -30,8 +28,8 @@
         this.highResImgsUrl = highResImgsUrl;
         this.imgPrefix = imgPrefix;
         this.imgsCount = imgsCount;
-        this.imgsType = imgsType || 'jpg';
-        this.imgsNumFormat = imgsNumFormat || '0';
+        this.imgsType = imgsType ? imgsType : 'jpg';
+        this.imgsNumFormat = imgsNumFormat ? imgsNumFormat : '0';
 
         this.images = [];
     };
@@ -49,35 +47,51 @@
             loaded = 0,
             error = false;
 
-        function img_loadHandler(e) {
-            e.target.onload = null;
-            loaded++;
-
-            if (!error) {
-                if (that.onprogress) {
-                    that.onprogress(loaded / that.imgsCount);
-                }
-                if (loaded == that.imgsCount) {
-                    if (that.onload) that.onload();
-                    that._handleScrolling();
-                }
-            }
-
+        for (var i = 0; i < this.imgsCount; i++) {
+            xhr(i);
         }
 
-        function img_errorHandler(e) {
-            e.target.onerror = null;
-            error = true;
-            that.onerror(e);
+        function xhr(i) {
+            that.images[i] = new XMLHttpRequest();
+            that.images[i].open('GET', that._getImgUrl(that.lowResImgsUrl, i), true);
+            that.images[i].responseType = 'blob';
+            that.images[i].addEventListener('load', xhr_loadHandler(i), false);
+            that.images[i].addEventListener('error', xhr_errorHandler(), false);
+            that.images[i].addEventListener('abort', xhr_abortHandler(), false);
+            that.images[i].send();
         }
-        for (var i = 0, img; i < this.imgsCount; i++) {
-            img = new Image();
-            img.style.cssText = this.img.style.cssText;
 
-            img.src = this._getImgUrl(this.lowResImgsUrl, i);
-            img.onload = img_loadHandler;
-            img.onerror = img_errorHandler;
-            this.images.push(img);
+        function xhr_loadHandler(i) {
+            return function _xhr_loadHandler(e) {
+                e.target.removeEventListener('error', _xhr_loadHandler);
+                if (!error) {
+
+                    that.images[i] = window.URL.createObjectURL(e.target.response); // div;
+                    loaded++;
+
+                    if (that.onprogress) {
+                        that.onprogress(loaded / that.imgsCount);
+                    }
+                    if (loaded == that.imgsCount) {
+                        if (that.onload) that.onload();
+                        that._handleScrolling();
+                    }
+                }
+            };
+        }
+
+        function xhr_errorHandler() {
+            return function (e) {
+                error = true;
+                if (that.onerror) that.onerror(e);
+            };
+        }
+
+        function xhr_abortHandler() {
+            return function (e) {
+                error = true;
+                if (that.onerror) that.onerror(e);
+            };
         }
 
         return this;
@@ -127,18 +141,12 @@
                 imgNum = Math.round(window.pageYOffset / document.body.clientHeight * that.images.length);
             if (null === prevImgNum || prevImgNum != imgNum) {
                 img = that.images[imgNum];
-
                 if (img) {
-                    // Getting top and left of already loaded image
-                    var top = (window.innerHeight - that.img.height) / 2 + 'px',
-                        left = (window.innerWidth - that.img.width) / 2 + 'px';
-
-                    that.img = img;
-                    that.img.style.top = top;
-                    that.img.style.left = left;
-
-                    that.el.innerHTML = '';
-                    that.el.appendChild(that.img);
+                    // Setting src
+                    that.img.src = img;
+                    // Updating min-width & min-height so it doesn't use img width & height
+                    that.img.style['min-width'] = '100vw';
+                    that.img.style['min-height'] = '100vh';
 
                     prevImgNum = imgNum;
                 }
@@ -147,22 +155,23 @@
             scrollEndTimeout = setTimeout(function () {
                 that._loadHighResImg(imgNum);
             }, 250);
-
         }
         window.addEventListener('scroll', window_scrollHandler, false);
-        window_scrollHandler();
+        window_scrollHandler(function () {
+            window_resizeHandler();
+        });
 
         function window_resizeHandler() { // Centering image
             that.img.style.top = (window.innerHeight - that.img.height) / 2 + 'px';
             that.img.style.left = (window.innerWidth - that.img.width) / 2 + 'px';
         }
         window.addEventListener('resize', window_resizeHandler, false);
-        window_resizeHandler();
     };
 
     /**
      * @private
      */
+    /*jshint unused: vars */
     Scroll2Play.prototype._loadHighResImg = function s2p_loadHighResImg(imgNum) {
         if (this.highResImgsUrl) {
             var width = this.img.width,
