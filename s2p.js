@@ -157,9 +157,7 @@
             }, 250);
         }
         window.addEventListener('scroll', window_scrollHandler, false);
-        window_scrollHandler(function () {
-            window_resizeHandler();
-        });
+        window_scrollHandler();
 
         function window_resizeHandler() { // Centering image
             that.img.style.top = (window.innerHeight - that.img.height) / 2 + 'px';
