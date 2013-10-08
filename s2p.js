@@ -144,10 +144,13 @@
                 if (img) {
                     // Setting src
                     that.img.src = img;
-                    // Updating min-width & min-height so it doesn't use img width & height
-                    that.img.style['min-width'] = '100vw';
-                    that.img.style['min-height'] = '100vh';
 
+                    // Updating min-width & min-height so it doesn't use img width & height
+                    var top = (window.innerHeight - that.img.height) / 2 + 'px',
+                        left = (window.innerWidth - that.img.width) / 2 + 'px';
+                    that.img.style.cssText = 'position:relative;min-height:100vh;min-width:100vw;top:' + top + ';left:' + left;
+
+                    // Setting prev image num so it doesn't reload it unecessarly
                     prevImgNum = imgNum;
                 }
             }
