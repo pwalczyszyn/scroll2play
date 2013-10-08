@@ -32,6 +32,8 @@ It dispatches three events:
 * `onprogress` - Dispatched during images loading with a progress value param.
 * `onerror` - Dispatched when loading any of the images failes. After this event loading of images is stopped.
 
+### Usage
+
 This is how you can use it in your own project:
 
     // Instantiate Scroll2Play
