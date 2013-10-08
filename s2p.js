@@ -21,7 +21,7 @@
         this.el.style.cssText += 'position:fixed;overflow:hidden;width:100%;height:100%;';
 
         this.img = document.createElement('img');
-        this.img.style.cssText = 'position:relative;min-height:100vh;min-width:100vw;';
+        this.img.style.cssText = 'position:relative;height:auto;width:auto;min-height:100vh;min-width:100vw;';
         this.el.appendChild(this.img);
 
         this.lowResImgsUrl = lowResImgsUrl;
@@ -144,12 +144,8 @@
                 if (img) {
                     // Setting src
                     that.img.src = img;
-
-                    // Updating min-width & min-height so it doesn't use img width & height
-                    var top = (window.innerHeight - that.img.height) / 2 + 'px',
-                        left = (window.innerWidth - that.img.width) / 2 + 'px';
-                    that.img.style.cssText = 'position:relative;min-height:100vh;min-width:100vw;top:' + top + ';left:' + left;
-
+                    // Resizing and repositioning image
+                    window_resizeHandler();
                     // Setting prev image num so it doesn't reload it unecessarly
                     prevImgNum = imgNum;
                 }
@@ -163,8 +159,10 @@
         window_scrollHandler();
 
         function window_resizeHandler() { // Centering image
-            that.img.style.top = (window.innerHeight - that.img.height) / 2 + 'px';
-            that.img.style.left = (window.innerWidth - that.img.width) / 2 + 'px';
+            // Updating min-width & min-height so it doesn't use img width & height
+            var top = (window.innerHeight - that.img.height) / 2 + 'px',
+                left = (window.innerWidth - that.img.width) / 2 + 'px';
+            that.img.style.cssText = 'position:relative;height:auto;width:auto;min-height:100vh;min-width:100vw;top:' + top + ';left:' + left;
         }
         window.addEventListener('resize', window_resizeHandler, false);
     };
