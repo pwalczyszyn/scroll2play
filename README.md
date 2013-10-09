@@ -2,6 +2,7 @@ scroll2play
 ===========
 
 Simple JS lib that mimics video playback while scrolling browser window. You can see it in action [here](http://pwalczyszyn.github.io/scroll2play/).
+To export sequence of still images you can use Adobe Media Encoder, you can follow [this video tutorial](http://www.youtube.com/watch?v=SPbFJIgA1D8) to learn more.
 
 ## API
 
