@@ -31,6 +31,7 @@
         this.imgsType = imgsType ? imgsType : 'jpg';
         this.imgsNumFormat = imgsNumFormat ? imgsNumFormat : '0';
 
+        this.xhrs = [];
         this.images = [];
     };
 
@@ -48,31 +49,35 @@
             error = false;
 
         for (var i = 0; i < this.imgsCount; i++) {
-            xhr(i);
+            that.xhrs[i] = xhr();
         }
 
-        function xhr(i) {
-            that.images[i] = new XMLHttpRequest();
-            that.images[i].open('GET', that._getImgUrl(that.lowResImgsUrl, i), true);
-            that.images[i].responseType = 'blob';
-            that.images[i].addEventListener('load', xhr_loadHandler(i), false);
-            that.images[i].addEventListener('error', xhr_errorHandler(), false);
-            that.images[i].addEventListener('abort', xhr_abortHandler(), false);
-            that.images[i].send();
+        function xhr() {
+            var req = new XMLHttpRequest();
+            req.open('GET', that._getImgUrl(that.lowResImgsUrl, i), true);
+            req.responseType = 'blob';
+            req.addEventListener('load', xhr_loadHandler(i), false);
+            req.addEventListener('error', xhr_errorHandler(), false);
+            req.addEventListener('abort', xhr_abortHandler(), false);
+            req.send();
+            return req;
         }
 
         function xhr_loadHandler(i) {
             return function _xhr_loadHandler(e) {
-                e.target.removeEventListener('error', _xhr_loadHandler);
                 if (!error) {
 
-                    that.images[i] = window.URL.createObjectURL(e.target.response); // div;
+                    // Creating BLOB references
+                    that.images[i] = window.URL.createObjectURL(e.target.response);
+
+                    // Incrementing num of loaded images
                     loaded++;
 
                     if (that.onprogress) {
                         that.onprogress(loaded / that.imgsCount);
                     }
                     if (loaded == that.imgsCount) {
+                        delete that.xhrs; // Cleaning up
                         if (that.onload) that.onload();
                         that._handleScrolling();
                     }
